@@ -1,6 +1,6 @@
 import logging
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.const import Platform
 
@@ -34,6 +34,24 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data[DOMAIN][entry.entry_id] = coordinator
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+
+    # Register services once
+    if not hass.services.has_service(DOMAIN, "send_raw_command"):
+
+        async def handle_raw(call: ServiceCall):
+            command = call.data["command"]
+            entry_id = call.data.get("entry_id")
+            if entry_id in hass.data[DOMAIN]:
+                await hass.data[DOMAIN][entry_id].api.send(command)
+
+        async def handle_lcn(call: ServiceCall):
+            lcn = call.data["lcn"]
+            entry_id = call.data.get("entry_id")
+            if entry_id in hass.data[DOMAIN]:
+                await hass.data[DOMAIN][entry_id].api.set_lcn(int(lcn))
+
+        hass.services.async_register(DOMAIN, "send_raw_command", handle_raw)
+        hass.services.async_register(DOMAIN, "set_lcn", handle_lcn)
 
     return True
 
