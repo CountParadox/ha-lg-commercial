@@ -5,10 +5,25 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 
+AVAILABLE_INPUTS = {
+    "DTV": "00",
+    "HDMI1": "90",
+    "HDMI2": "91",
+    "HDMI3": "92",
+    "HDMI4": "93",
+    "DisplayPort": "C0",
+    "OPS": "A0",
+    "AV": "20",
+    "Component": "40",
+}
+
 
 async def async_setup_entry(hass, entry, async_add_entities):
     coordinator = hass.data[DOMAIN][entry.entry_id]
-    async_add_entities([LGCommercialMediaPlayer(coordinator, entry.title)])
+    enabled_inputs = entry.data.get("enabled_inputs", list(AVAILABLE_INPUTS.keys()))
+    async_add_entities([
+        LGCommercialMediaPlayer(coordinator, entry.title, enabled_inputs)
+    ])
 
 
 class LGCommercialMediaPlayer(CoordinatorEntity, MediaPlayerEntity):
@@ -22,25 +37,20 @@ class LGCommercialMediaPlayer(CoordinatorEntity, MediaPlayerEntity):
         | MediaPlayerEntityFeature.VOLUME_MUTE
     )
 
-    def __init__(self, coordinator, name):
+    def __init__(self, coordinator, name, enabled_inputs):
         super().__init__(coordinator)
         self._attr_name = name
-
-        self._sources = {
-            "HDMI1": "90",
-            "HDMI2": "91",
-            "DTV": "00",
-        }
+        self._enabled_inputs = enabled_inputs
 
     @property
     def state(self):
-        if "01 OK" in self.coordinator.data["power"]:
+        if self.coordinator.data and "01 OK" in self.coordinator.data.get("power", ""):
             return STATE_ON
         return STATE_OFF
 
     @property
     def source_list(self):
-        return list(self._sources.keys())
+        return self._enabled_inputs
 
     async def async_turn_on(self):
         await self.coordinator.api.power_on()
@@ -49,7 +59,7 @@ class LGCommercialMediaPlayer(CoordinatorEntity, MediaPlayerEntity):
         await self.coordinator.api.power_off()
 
     async def async_select_source(self, source):
-        code = self._sources[source]
+        code = AVAILABLE_INPUTS[source]
         await self.coordinator.api.set_input(code)
 
     async def async_set_volume_level(self, volume):
