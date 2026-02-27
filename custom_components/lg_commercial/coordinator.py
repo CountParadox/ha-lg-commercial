@@ -1,17 +1,10 @@
 import asyncio
 import logging
 from datetime import timedelta
-
-from homeassistant.helpers.update_coordinator import (
-    DataUpdateCoordinator,
-    UpdateFailed,
-)
-from homeassistant.components.wake_on_lan import send_magic_packet
-
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from .const import DEFAULT_SCAN_INTERVAL
 
 _LOGGER = logging.getLogger(__name__)
-
 
 class LGDisplayAPI:
     def __init__(self, host, port, mac, use_alternate=False, set_id="01"):
@@ -30,11 +23,11 @@ class LGDisplayAPI:
         await writer.wait_closed()
         return data.decode(errors="ignore")
 
-    async def power_on(self, hass):
-        await hass.async_add_executor_job(send_magic_packet, self.mac)
+    async def power_on(self):
+        return await self.send(f"ka {self.set_id} 01")
 
     async def power_off(self):
-        await self.send(f"ka {self.set_id} 00")
+        return await self.send(f"ka {self.set_id} 00")
 
     async def get_power(self):
         return await self.send(f"ka {self.set_id} ff")
@@ -63,7 +56,6 @@ class LGDisplayAPI:
     async def set_lcn(self, lcn):
         return await self.send(f"ma {self.set_id} {lcn:03}")
 
-
 class LGCoordinator(DataUpdateCoordinator):
     def __init__(self, hass, api):
         super().__init__(
@@ -73,7 +65,6 @@ class LGCoordinator(DataUpdateCoordinator):
             update_interval=timedelta(seconds=DEFAULT_SCAN_INTERVAL),
         )
         self.api = api
-        self.hass = hass
 
     async def _async_update_data(self):
         try:

@@ -6,7 +6,6 @@
   "issue_tracker": "https://github.com/YOUR_USERNAME/ha-lg-commercial/issues",
   "config_flow": true,
   "requirements": [],
-  "dependencies": ["wake_on_lan"],
   "codeowners": [],
   "iot_class": "local_polling"
 }
