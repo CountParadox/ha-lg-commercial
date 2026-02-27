@@ -1,0 +1,15 @@
+send_raw_command:
+  name: Send Raw Command
+  description: Send arbitrary raw command to LG display
+  fields:
+    command:
+      description: ASCII command without carriage return
+      example: "ka 01 01"
+
+set_lcn:
+  name: Set Channel (LCN)
+  description: Change to specific logical channel number
+  fields:
+    lcn:
+      description: Logical channel number
+      example: 7
