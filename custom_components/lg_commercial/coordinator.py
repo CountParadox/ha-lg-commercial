@@ -2,9 +2,11 @@ import asyncio
 import logging
 from datetime import timedelta
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+
 from .const import DEFAULT_SCAN_INTERVAL
 
 _LOGGER = logging.getLogger(__name__)
+
 
 class LGDisplayAPI:
     def __init__(self, host, port, mac, use_alternate=False, set_id="01"):
@@ -25,8 +27,24 @@ class LGDisplayAPI:
 
     async def power_on(self, hass, wol_entity=None):
         if wol_entity:
-            await hass.services.async_call("switch", "turn_on", {"entity_id": wol_entity}, blocking=True)
-            return
+            domain = wol_entity.split(".")[0]
+
+            if domain == "switch":
+                await hass.services.async_call(
+                    "switch", "turn_on",
+                    {"entity_id": wol_entity},
+                    blocking=True,
+                )
+                return
+
+            if domain == "button":
+                await hass.services.async_call(
+                    "button", "press",
+                    {"entity_id": wol_entity},
+                    blocking=True,
+                )
+                return
+
         return await self.send(f"ka {self.set_id} 01")
 
     async def power_off(self):
@@ -58,6 +76,7 @@ class LGDisplayAPI:
 
     async def set_lcn(self, lcn):
         return await self.send(f"ma {self.set_id} {lcn:03}")
+
 
 class LGCoordinator(DataUpdateCoordinator):
     def __init__(self, hass, api):
