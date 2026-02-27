@@ -1,5 +1,6 @@
 import voluptuous as vol
 from homeassistant import config_entries
+from homeassistant.const import CONF_NAME, CONF_IP_ADDRESS, CONF_PORT
 from homeassistant.helpers import selector
 
 from .const import DOMAIN, DEFAULT_PORT
@@ -22,7 +23,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 vol.Required(CONF_IP_ADDRESS): str,
                 vol.Optional(CONF_PORT, default=DEFAULT_PORT): int,
                 vol.Optional("wol_entity"): selector.EntitySelector(
-                    selector.EntitySelectorConfig(domain=["switch","button"])
+                    selector.EntitySelectorConfig(domain=["switch", "button"])
                 ),
             }),
         )
