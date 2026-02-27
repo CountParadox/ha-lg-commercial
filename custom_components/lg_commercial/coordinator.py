@@ -9,10 +9,10 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class LGDisplayAPI:
-    def __init__(self, host, port, mac, use_alternate=False, set_id="01"):
+    def __init__(self, host, port, use_alternate=False, set_id="01"):
         self.host = host
         self.port = port
-        self.mac = mac
+        
         self.use_alternate = use_alternate
         self.set_id = set_id
 

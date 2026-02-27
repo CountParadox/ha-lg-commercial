@@ -23,7 +23,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     api = LGDisplayAPI(
         host=entry.data["ip_address"],
         port=entry.data["port"],
-        mac=entry.data["mac"],
+        
         use_alternate=entry.data.get("use_alternate", False),
         set_id=entry.data.get("set_id", "01"),
     )
