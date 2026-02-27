@@ -39,6 +39,7 @@ class LGCommercialMediaPlayer(CoordinatorEntity, MediaPlayerEntity):
 
     def __init__(self, coordinator, name, enabled_inputs):
         super().__init__(coordinator)
+        self._attr_unique_id = f"lg_commercial_{self.coordinator.api.host}"
         self._attr_name = name
         self._enabled_inputs = enabled_inputs
 
