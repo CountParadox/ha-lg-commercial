@@ -6,7 +6,7 @@ from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
     UpdateFailed,
 )
-from homeassistant.components.wake_on_lan import async_send_magic_packet
+from homeassistant.components.wake_on_lan import send_magic_packet
 
 from .const import DEFAULT_SCAN_INTERVAL
 
@@ -30,8 +30,8 @@ class LGDisplayAPI:
         await writer.wait_closed()
         return data.decode(errors="ignore")
 
-    async def power_on(self):
-        await async_send_magic_packet(self.mac)
+    async def power_on(self, hass):
+        await hass.async_add_executor_job(send_magic_packet, self.mac)
 
     async def power_off(self):
         await self.send(f"ka {self.set_id} 00")
@@ -73,6 +73,7 @@ class LGCoordinator(DataUpdateCoordinator):
             update_interval=timedelta(seconds=DEFAULT_SCAN_INTERVAL),
         )
         self.api = api
+        self.hass = hass
 
     async def _async_update_data(self):
         try:

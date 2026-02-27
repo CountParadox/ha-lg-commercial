@@ -53,7 +53,7 @@ class LGCommercialMediaPlayer(CoordinatorEntity, MediaPlayerEntity):
         return self._enabled_inputs
 
     async def async_turn_on(self):
-        await self.coordinator.api.power_on()
+        await self.coordinator.api.power_on(self.hass)
 
     async def async_turn_off(self):
         await self.coordinator.api.power_off()
