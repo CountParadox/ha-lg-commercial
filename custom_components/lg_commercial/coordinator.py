@@ -23,7 +23,10 @@ class LGDisplayAPI:
         await writer.wait_closed()
         return data.decode(errors="ignore")
 
-    async def power_on(self):
+    async def power_on(self, hass, wol_entity=None):
+        if wol_entity:
+            await hass.services.async_call("switch", "turn_on", {"entity_id": wol_entity}, blocking=True)
+            return
         return await self.send(f"ka {self.set_id} 01")
 
     async def power_off(self):
