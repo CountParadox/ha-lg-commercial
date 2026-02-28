@@ -50,7 +50,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 vol.Optional(CONF_SET_ID, default=LG_DEFAULT_SET_ID): cv.string,
                 vol.Optional(CONF_USE_ALTERNATE, default=False): bool,
                 vol.Optional(CONF_ENABLED_INPUTS, default=list(AVAILABLE_INPUTS.keys())): cv.multi_select(
-                    AVAILABLE_INPUTS
+                    list(AVAILABLE_INPUTS.keys())
                 ),
             }),
             errors=errors,

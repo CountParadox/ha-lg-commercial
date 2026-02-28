@@ -12,7 +12,16 @@ from .const import AVAILABLE_INPUTS, CONF_ENABLED_INPUTS, CONF_WOL_ENTITY, DOMAI
 async def async_setup_entry(hass, entry, async_add_entities):
     coordinator = hass.data[DOMAIN][entry.entry_id]
     enabled_inputs = entry.data.get(CONF_ENABLED_INPUTS, list(AVAILABLE_INPUTS.keys()))
-    enabled_inputs = [name for name in enabled_inputs if name in AVAILABLE_INPUTS]
+    code_to_name = {code.upper(): name for name, code in AVAILABLE_INPUTS.items()}
+    normalized_inputs = []
+    for value in enabled_inputs:
+        if value in AVAILABLE_INPUTS:
+            normalized_inputs.append(value)
+            continue
+        mapped_name = code_to_name.get(str(value).upper())
+        if mapped_name:
+            normalized_inputs.append(mapped_name)
+    enabled_inputs = normalized_inputs
     if not enabled_inputs:
         enabled_inputs = list(AVAILABLE_INPUTS.keys())
     wol_entity = entry.data.get(CONF_WOL_ENTITY)
