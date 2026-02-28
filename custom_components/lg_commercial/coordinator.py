@@ -60,8 +60,25 @@ class LGDisplayAPI:
         return await self.send(f"ka {self.set_id} ff")
 
     async def set_input(self, code):
-        cmd = "xv" if self.use_alternate else "xb"
-        return await self.send(f"{cmd} {self.set_id} {code}")
+        preferred_cmd = "xv" if self.use_alternate else "xb"
+        fallback_cmd = "xb" if preferred_cmd == "xv" else "xv"
+        normalized_code = str(code).lower()
+
+        response = await self.send(f"{preferred_cmd} {self.set_id} {normalized_code}")
+        if "NG" not in response and "OK" in response:
+            return response
+
+        fallback_response = await self.send(f"{fallback_cmd} {self.set_id} {normalized_code}")
+        if "NG" not in fallback_response and "OK" in fallback_response:
+            self.use_alternate = fallback_cmd == "xv"
+            _LOGGER.debug(
+                "LG input set succeeded with fallback command set (%s) for %s",
+                fallback_cmd,
+                self.host,
+            )
+            return fallback_response
+
+        return fallback_response
 
     async def get_input(self):
         cmd = "xv" if self.use_alternate else "xb"

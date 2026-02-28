@@ -103,6 +103,7 @@ class LGCommercialMediaPlayer(CoordinatorEntity, MediaPlayerEntity):
         if code is None:
             raise HomeAssistantError(f"Unsupported source requested: {source}")
         await self.coordinator.api.set_input(code)
+        await self.coordinator.async_request_refresh()
 
     async def async_set_volume_level(self, volume):
         await self.coordinator.api.set_volume(int(volume * 100))
