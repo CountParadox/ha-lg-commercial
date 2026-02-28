@@ -1,100 +1,68 @@
-# LG Commercial Display (Direct IP) – Home Assistant Integration
+# LG Commercial Display (Direct IP) - Home Assistant Integration
 
-Custom Home Assistant integration for controlling LG Commercial Displays over TCP (default port 9761) using the standard LG RS232/IP command set.
-
----
+Custom Home Assistant integration for controlling LG Commercial Displays over TCP (default port `9761`) using the LG RS232/IP command set.
 
 ## Features
 
-- Power control (with Wake-On-LAN)
+- Power control (with optional Wake-on-LAN helper entity)
 - Input selection (installer-selectable)
-- Volume control
-- Mute control
-- Channel (LCN) selection
+- Volume set, mute, volume up/down
+- Channel (LCN) selection service
 - Raw command service
 - Multi-device support
-- Alternate command set toggle
+- Alternate input command set toggle (`xb` vs `xv`)
 - Regular polling for remote state changes
 
----
+## Configuration
 
-## IMPORTANT – Input Selection Required
+The config flow exposes:
 
-During setup, you must manually select which inputs exist on your display.
+- `Name`
+- `IP address`
+- `Port` (default `9761`)
+- `Wake-on-LAN entity` (`switch` or `button`, optional)
+- `Set ID` (2 digits, default `01`)
+- `Use alternate input command set` (optional)
+- `Enabled inputs` (multi-select)
 
-LG commercial displays **do not provide a reliable method to query all available inputs over IP**.  
-While it is possible to query the *current* input, the display does not expose a complete list of supported inputs.
+### Important: Input Selection Is Manual
 
-Because of this limitation, the integration cannot automatically detect:
+LG commercial displays do not provide a reliable API to enumerate all supported inputs over IP.  
+You can query the current input, but not a complete per-model list.
 
-- Which HDMI ports exist
-- Whether DisplayPort is available
-- Whether OPS is installed
-- Whether DTV is enabled
-- Whether AV/Component inputs are present
-
-You must select the correct inputs during configuration to match your specific model.
-
-If you select an input that does not exist on the panel, the command will be sent but the display may ignore it.
-
----
-
-## Determining Available Inputs
-
-You can determine valid inputs by:
-
-1. Checking the physical rear panel of the display
-2. Reviewing the LG model specification sheet
-3. Opening the on-screen input list menu on the display
-4. Testing manually using the raw command service
-
----
-
-## Accessing the Installer Menu
-
-To enable network control and Wake-On-LAN:
-
-1. Hold the INPUT button on the remote
-2. Wait until the current input appears on screen
-3. Press:
-
-1105 ENTER
-
-Inside the installer menu, enable:
-
-- Network Ready
-- Wake-On-LAN
-- Mobile TV On (if available)
-- Power On Status = Last
-
----
+Select only the inputs that exist on your panel. Invalid inputs may be ignored by the display.
 
 ## Services
 
-### Send Raw Command
+### `lg_commercial.send_raw_command`
 
-Send arbitrary RS232/IP command (without carriage return).
+Send an arbitrary command (without trailing carriage return).
 
-Example:
-lg_commercial.send_raw_command command: "ka 01 01"
----
+```yaml
+service: lg_commercial.send_raw_command
+data:
+  command: "ka 01 01"
+  entry_id: "01J123ABC456DEF789GH0IJKL"  # optional when only one device is configured
+```
 
-### Set Channel (LCN)
+### `lg_commercial.set_lcn`
 
-Change to a digital channel by logical channel number.
+Set digital channel by logical channel number.
 
-Example:
-lg_commercial.set_lcn lcn: 7
----
+```yaml
+service: lg_commercial.set_lcn
+data:
+  lcn: 7
+  entry_id: "01J123ABC456DEF789GH0IJKL"  # optional when only one device is configured
+```
 
-## Notes for Installers
+If multiple LG entries are configured, `entry_id` is required for these services.
 
-- Default control port is 9761
-- Set ID defaults to 01
-- Some hospitality firmware may require the alternate command set toggle
-- Polling interval is 20 seconds
-- If the display becomes unreachable, it will show as unavailable in Home Assistant
+## Installer Notes
 
----
+- Ensure network control is enabled on the display.
+- Enable Wake-on-LAN/Network Ready options in installer menu when available.
+- Polling interval is 20 seconds.
+- If the display is unreachable, the entity becomes unavailable until communication recovers.
 
 This integration is designed for professional AV deployments where direct IP control is preferred over webOS control.

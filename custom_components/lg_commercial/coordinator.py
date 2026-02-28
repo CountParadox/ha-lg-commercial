@@ -3,7 +3,7 @@ import logging
 from datetime import timedelta
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .const import DEFAULT_SCAN_INTERVAL
+from .const import DEFAULT_COMMAND_TIMEOUT, DEFAULT_SCAN_INTERVAL
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -12,18 +12,24 @@ class LGDisplayAPI:
     def __init__(self, host, port, use_alternate=False, set_id="01"):
         self.host = host
         self.port = port
-        
         self.use_alternate = use_alternate
         self.set_id = set_id
 
     async def send(self, command):
-        reader, writer = await asyncio.open_connection(self.host, self.port)
-        writer.write(f"{command}\r".encode())
-        await writer.drain()
-        data = await reader.read(128)
-        writer.close()
-        await writer.wait_closed()
-        return data.decode(errors="ignore")
+        writer = None
+        try:
+            reader, writer = await asyncio.wait_for(
+                asyncio.open_connection(self.host, self.port),
+                timeout=DEFAULT_COMMAND_TIMEOUT,
+            )
+            writer.write(f"{command}\r".encode())
+            await asyncio.wait_for(writer.drain(), timeout=DEFAULT_COMMAND_TIMEOUT)
+            data = await asyncio.wait_for(reader.read(128), timeout=DEFAULT_COMMAND_TIMEOUT)
+            return data.decode(errors="ignore")
+        finally:
+            if writer is not None:
+                writer.close()
+                await writer.wait_closed()
 
     async def power_on(self, hass, wol_entity=None):
         if wol_entity:

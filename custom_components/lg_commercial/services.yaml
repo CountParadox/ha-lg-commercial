@@ -5,6 +5,9 @@ send_raw_command:
     command:
       description: ASCII command without carriage return
       example: "ka 01 01"
+    entry_id:
+      description: Optional config entry ID; required if multiple LG displays are configured
+      example: "01J123ABC456DEF789GH0IJKL"
 
 set_lcn:
   name: Set Channel (LCN)
@@ -13,3 +16,6 @@ set_lcn:
     lcn:
       description: Logical channel number
       example: 7
+    entry_id:
+      description: Optional config entry ID; required if multiple LG displays are configured
+      example: "01J123ABC456DEF789GH0IJKL"
